@@ -7,12 +7,17 @@
     <title>Todo App</title>
 </head>
 <body>
-
+    
+    <form method="post" action="/todos/create">
+        <input type="text" name="description"/>
+        <input type="submit" name="Create"/>        
+    </form>
     <ul>
         {% for d in data %}
-        <li>{{d.description}}</li>
+        <li>
+            {{d.description}}
+        </li>
         {% endfor %}
     </ul>
-    
 </body>
 </html>
