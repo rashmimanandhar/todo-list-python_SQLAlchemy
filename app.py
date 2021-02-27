@@ -27,10 +27,12 @@ def create_todo():
     body = {}
     try:
         desc = request.get_json()['description']
-        todo = Todo(description=desc)
+        todo = Todo(description=desc, completed=False)
         db.session.add(todo)
         db.session.commit()
-        body['description'] = desc
+        body['id'] = todo.id
+        body['completed'] = todo.completed
+        body['description'] = todo.description
     except:
         error = True
         db.session.rollback()
@@ -41,32 +43,32 @@ def create_todo():
         abort (400)
         print(error)
     else:
-        return jsonify({"description":todo.description})
+        return jsonify(body)
 
-# @app.route('/todos/<todo_id>/set-completed', methods=['POST'])
-# def set_completed_todos(todo_id):
-#     try:
-#         completed = request.get_json()['completed']
-#         todo = Todo.query.get(todo_id)
-#         todo.completed = completed
-#         db.session.commit()
-#     except:
-#         db.session.rollback()
-#     finally:
-#         db.session.close()
-#     return redirect(url_for('index'))
+@app.route('/todos/<todo_id>/set-completed', methods=['POST'])
+def set_completed_todos(todo_id):
+    try:
+        completed = request.get_json()['completed']
+        todo = Todo.query.get(todo_id)
+        todo.completed = completed
+        db.session.commit()
+    except:
+        db.session.rollback()
+    finally:
+        db.session.close()
+    return redirect(url_for('index'))
 
-# @app.route('/todos/<todo_id>/delete', methods=['DELETE'])
-# def delete_todo(todo_id):
-#     try:
-#         todo = TODO.query.get(todo_id)
-#         db.session.delete(todo)
-#         db.session.commit()
-#     except:
-#         db.session.rollback()
-#     finally:
-#         db.session.close()
-#     return jsonify({"id": todo.id})
+@app.route('/todos/<todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    try:
+        Todo.query.filter_by(id=todo_id).delete()
+        db.session.delete(todo)
+        db.session.commit()
+    except:
+        db.session.rollback()
+    finally:
+        db.session.close()
+    return jsonify({ 'success': True })
     
 @app.route('/')
 def index():

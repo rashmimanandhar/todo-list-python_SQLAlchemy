@@ -43,24 +43,26 @@
         <li>
             <input type="checkbox" data-id="{{ d.id }}" class="check-completed" {% if d.completed %} checked {% endif%}/>
             {{d.description}}
-            <button data-id="{{ d.id }}" id="{{d.id}}" onclick="deleteTodo(this.id)" class="delete-todo">&cross;</button>
+            <button data-id="{{ d.id }}" class="delete-button">&cross;</button>
         </li>
         {% endfor %}
     </ul>
     <script>
-        deleteTodo = (todoId) =>{
-            console.log(todoId);
-            fetch('todos/'+todoId + "/delete", {
-                method: "DELETE",
-                body: {},
-                 headers: {
-                        'Content-Type': 'application/json'
-                    }
-            })
+        const deleteBtns = document.querySelectorAll('.delete-button');
+        for (let i = 0; i < deleteBtns.length; i++) {
+            const btn = deleteBtns[i];
+            btn.onclick = function(e) {
+                const todoId = e.target.dataset['id'];
+                fetch('/todos/' + todoId, {
+                    method: 'DELETE'
+                }).then(() => {
+                    const item = e.target.parentElement;
+                    item.remove();
+                })
+            }
         }
-            
         
-
+        
         const checkboxes = document.querySelectorAll('.check-completed');
         for(let i=0; i < checkboxes.length; i++){
             const checkbox = checkboxes[i];
@@ -97,10 +99,23 @@
             }).then((response) => {
                 return response.json();
             }).then((jsonResponse) => {
-                console.log(jsonResponse);
-                const liItem = document.createElement('li');
-                liItem.innerHTML = jsonResponse.description;
-                document.getElementById('todos').appendChild(liItem)
+                const li = document.createElement('li');
+                const checkbox = document.createElement('input');
+                checkbox.className = 'check-completed';
+                checkbox.type = 'checkbox';
+                checkbox.setAttribute('data-id', jsonResponse.id);
+                li.appendChild(checkbox);
+                
+                const text = document.createTextNode(' ' + jsonResponse.description);
+                li.appendChild(text);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-button';
+                deleteBtn.setAttribute('data-id', jsonResponse.id);
+                deleteBtn.innerHTML = '&cross;';
+                li.appendChild(deleteBtn);
+                
+                document.getElementById('todos').appendChild(li);
                 document.getElementById('error').className = 'hidden';
             }).catch((e) => {
                 console.log(e)
