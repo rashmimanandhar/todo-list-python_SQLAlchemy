@@ -39,21 +39,34 @@ def create_todo():
         db.session.close()
     if error:
         abort (400)
+        print(error)
     else:
         return jsonify({"description":todo.description})
 
-@app.route('/todos/<todo_id>/set-completed', methods=['POST'])
-def set_completed_todos(todo_id):
-    try:
-        completed = request.get_json()['completed']
-        todo = Todo.query.get(todo_id)
-        todo.completed = completed
-        db.session.commit()
-    except:
-        db.session.rollback()
-    finally:
-        db.session.close()
-    return redirect(url_for('index'))
+# @app.route('/todos/<todo_id>/set-completed', methods=['POST'])
+# def set_completed_todos(todo_id):
+#     try:
+#         completed = request.get_json()['completed']
+#         todo = Todo.query.get(todo_id)
+#         todo.completed = completed
+#         db.session.commit()
+#     except:
+#         db.session.rollback()
+#     finally:
+#         db.session.close()
+#     return redirect(url_for('index'))
+
+# @app.route('/todos/<todo_id>/delete', methods=['DELETE'])
+# def delete_todo(todo_id):
+#     try:
+#         todo = TODO.query.get(todo_id)
+#         db.session.delete(todo)
+#         db.session.commit()
+#     except:
+#         db.session.rollback()
+#     finally:
+#         db.session.close()
+#     return jsonify({"id": todo.id})
     
 @app.route('/')
 def index():
