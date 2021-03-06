@@ -50,6 +50,29 @@ def create_todo():
     else:
         return jsonify(body)
 
+@app.route('/lists/create', methods=['POST'])
+def create_list():
+    error = False
+    body = {}
+    try:
+        name = request.get_json()['list-name']
+        list =TodoList(name=name)
+        db.session.add(list)
+        db.session.commit() 
+        body['id'] = list.id
+        body['name'] = list.name
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exec_info())
+    finally:
+        db.session.close()
+    if error:
+        abort (400)
+        print(error)
+    else:
+        return jsonify(body)
+
 @app.route('/todos/<todo_id>/set-completed', methods=['POST'])
 def set_completed_todos(todo_id):
     try:
@@ -63,15 +86,37 @@ def set_completed_todos(todo_id):
         db.session.close()
     return redirect(url_for('index'))
 
+@app.route('/lists/<list_id>', methods=['DELETE'])
+def delete_list(list_id):
+    try:
+        list = TodoList.query.get(list_id)
+        for todo in list.todos:
+            db.session.delete(todo)
+        print("commited")
+        db.session.delete(list)
+        db.session.commit()
+    except:
+        print("rolling back")
+        db.session.rollback()
+    finally:
+        db.session.close()
+    if error:
+        abort(500)
+    else:
+        return jsonify({'success': True})
+        
+
 @app.route('/todos/<todo_id>', methods=['DELETE'])
 def delete_todo(todo_id):
     try:
-        Todo.query.filter_by(id=todo_id).delete()
+        todo = Todo.query.get(todo_id)
         db.session.delete(todo)
         db.session.commit()
     except:
+        print('rolling back')
         db.session.rollback()
     finally:
+        print('session closed')
         db.session.close()
     return jsonify({ 'success': True })
     
@@ -79,6 +124,7 @@ def delete_todo(todo_id):
 def get_list_todos(list_id):
     return render_template('index.html',
         lists=TodoList.query.all(),
+        active_list = TodoList.query.get(list_id),
         todos=Todo.query.filter_by(list_id=list_id).order_by('id').all())
 
 @app.route('/')
