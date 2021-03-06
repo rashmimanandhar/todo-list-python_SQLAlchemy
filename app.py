@@ -25,6 +25,7 @@ class TodoList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     todos = db.relationship('Todo', backref='list', lazy=True)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
 
 @app.route('/todos/create', methods=['POST'])
 def create_todo():
@@ -85,6 +86,30 @@ def set_completed_todos(todo_id):
     finally:
         db.session.close()
     return redirect(url_for('index'))
+
+@app.route('/lists/<list_id>/set-completed', methods=['POST'])
+def set_completed_list(list_id):
+    error = False
+
+    try:
+        list = TodoList.query.get(list_id)
+
+        for todo in list.todos:
+            todo.completed = True
+
+        db.session.commit()
+    except:
+        db.session.rollback()
+
+        error = True
+    finally:
+        db.session.close()
+
+    if error:
+        abort(500)
+    else:
+        return '', 200
+
 
 @app.route('/lists/<list_id>', methods=['DELETE'])
 def delete_list(list_id):
